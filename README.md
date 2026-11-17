@@ -5,7 +5,7 @@ hides instructions and a made-up promo code inside a product review in a fake sh
 with the support bot until it reads that review. A plain-code judge scores everything from an event log,
 so no AI grades another AI.
 
-- **Live replay of all 40 recorded campaigns:** https://shopbot-arena.vercel.app
+- **Visual summary and replay of all 40 campaigns:** https://shopbot-arena.vercel.app
 - **Write-up:** [What My Guards Couldn't See](https://yarrbakr.github.io/prompt-injection/)
 
 ## What we found
@@ -18,6 +18,8 @@ so no AI grades another AI.
 | Staff bot repeated the code from the poisoned ticket | 19 of 20 | 17 of 20 |
 | Replies blocked by the output guard | – | 63 of 152 |
 | Messages blocked by the input guard | – | 0 of 152 |
+
+![The bot repeated the code exactly when the review was opened](docs/trap-by-review-opened.png)
 
 Neither guard was shown the poisoned review. The input guard screens incoming messages, and the output guard
 gets the customer's message and the reply, not tool results. Most of the output guard's blocks (56) were
@@ -42,8 +44,9 @@ arena/              the lab
   static/           the web shell's pages
 notebooks/          Kaggle notebook that serves all five models
 results/            the two recorded runs (pairs, flags, session ids, payloads)
-scripts/            export_replay.py (event log -> site data), make_charts.py
-site/               the static replay site deployed on Vercel
+scripts/            export_replay.py (event log -> site data), make_charts.py (-> docs/)
+docs/               charts
+site/               the one-page visual summary and replay, deployed on Vercel
 tests/              offline tests with a mock model, no Kaggle needed
 ```
 

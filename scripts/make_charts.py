@@ -4,7 +4,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-OUT = Path(__file__).resolve().parent.parent / "site" / "assets"
+OUT = Path(__file__).resolve().parent.parent / "docs"
 INK, MUTED, GRID, ACCENT, GRAY = "#16171b", "#5f636e", "#e1e0d9", "#e34948", "#9aa0ad"
 plt.rcParams.update({"font.family": "Segoe UI", "font.size": 15, "text.color": INK, "axes.edgecolor": GRID,
                      "xtick.color": MUTED, "ytick.color": INK, "svg.fonttype": "none"})
