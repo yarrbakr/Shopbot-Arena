@@ -4,108 +4,144 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ShopBot Arena</title>
-<meta name="description" content="40 recorded indirect prompt injection attacks on an AI support bot. See which ones worked, what the guards could see, and replay any of them.">
+<meta name="description" content="40 recorded indirect prompt injection attacks on an AI support bot, shown as animated charts and a replay.">
 <meta property="og:title" content="ShopBot Arena">
 <meta property="og:description" content="A product review told the support bot what to say. 40 recorded attacks, replayable.">
 <meta property="og:type" content="website">
-<meta property="og:image" content="assets/summary-poster.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23d7261e'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<main>
-  <header class="masthead">
-    <span class="mono">ShopBot Arena</span>
-    <nav class="mono"><a href="https://yarrbakr.github.io/prompt-injection/">Write-up</a><a href="https://github.com/yarrbakr/Shopbot-Arena">Code</a></nav>
-  </header>
 
-  <section class="hero">
-    <h1>A product review told the support bot what to&nbsp;say.</h1>
-    <p class="lede">An attacker hid instructions and a fake promo code in a review. We ran the attack 40 times against an AI support bot, with and without five defenses.</p>
-  </section>
+<header class="top mono">
+  <span class="brand"><i></i>ShopBot Arena</span>
+  <nav><a href="#replay">Replay</a><a href="https://yarrbakr.github.io/prompt-injection/">Write-up</a><a href="https://github.com/yarrbakr/Shopbot-Arena">Code</a></nav>
+</header>
 
-  <section id="matrix" class="block">
-    <div class="block-head">
-      <h2><span class="big">13/13</span> times the bot read the review, it gave out the code.</h2>
-      <p class="note">Each square is one campaign. Select one to replay it.</p>
-    </div>
-    <div id="grid" class="matrix" role="group" aria-label="All 40 campaigns"></div>
-    <p class="key mono"><i class="sq hit"></i> bot gave the fake code <i class="sq"></i> it didn't</p>
-  </section>
+<!-- 1. the attack, animated -->
+<section class="hero scene">
+  <div class="wrap">
+    <h1>A product review told the support bot what&nbsp;to&nbsp;say.</h1>
+    <p class="sub mono">2 guards on the chat · 0 on the tools</p>
+    <figure class="flow">
+      <svg viewBox="0 0 960 330" role="img" aria-labelledby="flowt">
+        <title id="flowt">Customer messages pass the input guard and replies pass the output guard. The poisoned review reaches ShopBot through a tool call that no guard checks, and the reply carries the fake code.</title>
+        <path id="pMain" d="M70 120 H890" class="wire"/>
+        <path id="pIn" d="M70 120 H480" fill="none"/>
+        <path id="pOut" d="M480 120 H890" fill="none"/>
+        <path id="pPoison" d="M190 262 H440 Q480 262 480 222 V152" class="wire red dash"/>
 
-  <section class="block">
-    <div class="block-head">
-      <h2>Neither guard was shown the review.</h2>
-      <p class="note">The poison came in through a tool result, the one path no guard checked.</p>
-    </div>
-    <figure class="diagram">
-      <svg viewBox="0 0 960 300" role="img" aria-labelledby="dgt">
-        <title id="dgt">The customer's message passes the input guard, ShopBot's reply passes the output guard, and the poisoned review reaches ShopBot through a tool call that neither guard sees.</title>
-        <defs>
-          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="f-ink"/></marker>
-          <marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="f-red"/></marker>
-        </defs>
-        <g class="lbl">
-          <text x="70" y="62" text-anchor="middle">customer</text>
-          <text x="890" y="62" text-anchor="middle">reply</text>
+        <!-- ordinary traffic -->
+        <g class="pk">
+          <circle r="5"><animateMotion dur="3.2s" repeatCount="indefinite" begin="0s"><mpath href="#pMain"/></animateMotion></circle>
+          <circle r="5"><animateMotion dur="3.2s" repeatCount="indefinite" begin="1.07s"><mpath href="#pMain"/></animateMotion></circle>
+          <circle r="5"><animateMotion dur="3.2s" repeatCount="indefinite" begin="2.13s"><mpath href="#pMain"/></animateMotion></circle>
         </g>
-        <line x1="112" y1="90" x2="206" y2="90" class="s-ink" marker-end="url(#ah)"/>
-        <line x1="334" y1="90" x2="416" y2="90" class="s-ink" marker-end="url(#ah)"/>
-        <line x1="540" y1="90" x2="622" y2="90" class="s-ink" marker-end="url(#ah)"/>
-        <line x1="750" y1="90" x2="848" y2="90" class="s-ink" marker-end="url(#ah)"/>
-        <circle cx="70" cy="90" r="6" class="f-ink"/>
-        <circle cx="890" cy="90" r="6" class="f-ink"/>
+        <!-- the poison: review -> ShopBot -> reply -->
+        <g class="pk red">
+          <circle r="7"><animateMotion dur="6.4s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.45;1" calcMode="linear"><mpath href="#pPoison"/></animateMotion>
+            <animate attributeName="opacity" dur="6.4s" repeatCount="indefinite" values="1;1;0;0" keyTimes="0;0.45;0.46;1"/></circle>
+          <circle r="7" opacity="0"><animateMotion dur="6.4s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.46;0.8;1" calcMode="linear"><mpath href="#pOut"/></animateMotion>
+            <animate attributeName="opacity" dur="6.4s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;0.46;0.47;0.8;1"/></circle>
+        </g>
+        <circle cx="70" cy="120" r="7" class="node"/>
+        <text x="70" y="88" class="lbl" text-anchor="middle">customer</text>
+        <circle cx="890" cy="120" r="7" class="node"/>
+        <text x="890" y="88" class="lbl" text-anchor="middle">reply</text>
 
-        <rect x="210" y="66" width="124" height="48" class="box"/>
-        <text x="272" y="95" text-anchor="middle" class="t">input guard</text>
-        <rect x="420" y="58" width="120" height="64" class="box strong"/>
-        <text x="480" y="95" text-anchor="middle" class="t b">ShopBot</text>
-        <rect x="626" y="66" width="124" height="48" class="box"/>
-        <text x="688" y="95" text-anchor="middle" class="t">output guard</text>
+        <g class="guard"><rect x="206" y="94" width="132" height="52"/><text x="272" y="125" text-anchor="middle">input guard</text></g>
+        <g class="bot"><rect x="420" y="84" width="120" height="72"/><text x="480" y="126" text-anchor="middle">ShopBot</text></g>
+        <g class="guard"><rect x="622" y="94" width="132" height="52"/><text x="688" y="125" text-anchor="middle">output guard</text></g>
 
-        <path d="M180 250 H440 Q480 250 480 210 V126" class="s-red" marker-end="url(#ahr)"/>
-        <rect x="40" y="226" width="140" height="48" class="box red"/>
-        <text x="110" y="255" text-anchor="middle" class="t red">poisoned review</text>
-        <text x="494" y="186" class="t red small">read_review(1044)</text>
+        <g class="poison"><rect x="40" y="236" width="150" height="52"/><text x="115" y="267" text-anchor="middle">poisoned review</text></g>
+        <text x="300" y="300" class="lbl red" text-anchor="middle">no guard on this path</text>
 
-        <g class="lbl">
-          <text x="272" y="140" text-anchor="middle">checks the message</text>
-          <text x="688" y="140" text-anchor="middle">checks message + reply</text>
-          <text x="310" y="276" text-anchor="middle" class="red">not checked by either guard</text>
+        <g class="leak">
+          <text x="890" y="168" text-anchor="middle" id="leakCode">PROMO-····</text>
+          <animate attributeName="opacity" dur="6.4s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;0.79;0.81;0.97;1"/>
         </g>
       </svg>
     </figure>
-  </section>
+  </div>
+</section>
 
-  <section class="block">
-    <div class="block-head">
-      <h2>They were busy with other things.</h2>
-      <p class="note">152 messages in, 152 replies out, with defenses on.</p>
+<!-- 2. all 40 campaigns -->
+<section class="scene" id="campaigns">
+  <div class="wrap split">
+    <div class="stat">
+      <p class="num"><span data-count="13">0</span><small>/40</small></p>
+      <p class="cap">attacks got the fake code out of the bot</p>
     </div>
-    <div id="guards" class="guards"></div>
-  </section>
+    <div class="chart">
+      <div id="grid" class="matrix" role="group" aria-label="All 40 campaigns"></div>
+      <p class="key mono"><i class="sq hit"></i>gave the code <i class="sq"></i>didn't · select a square to replay it</p>
+    </div>
+  </div>
+</section>
 
-  <section id="replay" class="block">
-    <div class="block-head">
-      <h2 id="rtitle">Replay</h2>
-      <p class="note" id="rnote"></p>
+<!-- 3. the one thing that predicted it -->
+<section class="scene" id="read">
+  <div class="wrap split">
+    <div class="stat">
+      <p class="num"><span data-count="100">0</span><small>%</small></p>
+      <p class="cap">when the bot read the review, it gave the code. Every time.</p>
     </div>
-    <div class="rbar">
-      <div id="roles" class="roles mono" role="tablist" aria-label="Agent"></div>
-      <button id="play" class="mono linkish" type="button">Play</button>
+    <div class="chart units">
+      <div class="ugroup"><div class="uhead mono"><b data-count="13">0</b> bot read the review</div><div id="uRead" class="ugrid"></div></div>
+      <div class="ugroup"><div class="uhead mono"><b data-count="27">0</b> bot never read it</div><div id="uNot" class="ugrid"></div></div>
     </div>
-    <ol id="log" class="log" aria-live="polite"></ol>
-  </section>
+  </div>
+</section>
 
-  <footer class="end">
-    <p>One small model (qwen3:8b), one fake shop, 10 pairs per run. The 13/13 pattern was found after the runs, and the code only reached the attacker's own chat. All customers and orders are fake.</p>
-    <p class="mono"><a href="https://yarrbakr.github.io/prompt-injection/">Read the full write-up</a><a href="https://github.com/yarrbakr/Shopbot-Arena">Code and data</a><span>Abu Bakar Ramzan · Breakwater</span></p>
-  </footer>
-</main>
+<!-- 4. the guards -->
+<section class="scene" id="guards">
+  <div class="wrap">
+    <div class="shead"><h2>The guards were busy with other things.</h2><p class="mono">5 defenses on · 152 messages · 152 replies</p></div>
+    <div class="donuts">
+      <figure class="donut" id="dOut"></figure>
+      <figure class="donut" id="dIn"></figure>
+    </div>
+  </div>
+</section>
+
+<!-- 5. the staff bot -->
+<section class="scene" id="staff">
+  <div class="wrap split">
+    <div class="stat">
+      <p class="num"><span data-count="36">0</span><small>/40</small></p>
+      <p class="cap">times the internal staff bot repeated the code from a poisoned ticket</p>
+    </div>
+    <div class="chart"><div id="tickets" class="tickets" role="img" aria-label="36 of 40 poisoned tickets: the staff bot repeated the code"></div></div>
+  </div>
+</section>
+
+<!-- 6. replay -->
+<section class="scene" id="replay">
+  <div class="wrap">
+    <div class="shead"><h2>Watch one.</h2><p class="mono" id="rtitle"></p></div>
+    <div class="rp">
+      <aside class="rside">
+        <div id="pick" class="pick" role="group" aria-label="Pick a campaign"></div>
+        <div id="roles" class="roles mono" role="tablist" aria-label="Agent"></div>
+        <button id="play" class="btn mono" type="button">Play again</button>
+      </aside>
+      <div class="phone">
+        <div class="phead mono"><span id="pwho">ShopBot</span><span id="pres"></span></div>
+        <ol id="log" class="chat" aria-live="polite"></ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="end mono">
+  <p>1 target model (qwen3:8b) · 1 fake shop · 40 campaigns · fake customers only</p>
+  <p><a href="https://yarrbakr.github.io/prompt-injection/">Method and limits: the write-up</a><a href="https://github.com/yarrbakr/Shopbot-Arena">Code and data</a><span>Abu Bakar Ramzan · Breakwater</span></p>
+</footer>
+
 <script src="app.js"></script>
 </body>
 </html>
