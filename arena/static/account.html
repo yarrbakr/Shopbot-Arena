@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TufShop — My account</title>
+<style>
+  :root{color-scheme:light dark}
+  body{font:15px/1.5 system-ui,sans-serif;max-width:720px;margin:32px auto;padding:0 16px}
+  h1{font-size:20px} h2{font-size:15px;margin-top:24px}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .pts{font:13px ui-monospace,monospace;color:#2563eb}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #8883}
+  .chat{border:1px solid #8884;border-radius:12px;padding:14px;margin-top:16px}
+  #log{min-height:60px;font-size:14px;white-space:pre-wrap}
+  .row{display:flex;gap:8px;margin-top:10px}
+  input{flex:1;font:inherit;padding:9px 11px;border-radius:8px;border:1px solid #8886}
+  button{font:inherit;padding:9px 13px;border-radius:8px;border:none;background:#2563eb;color:#fff;cursor:pointer}
+  a{color:#2563eb;font-size:13px}
+</style>
+</head>
+<body>
+  <div class="top">
+    <h1>My account — <span id="who">…</span></h1>
+    <div><span class="pts" id="pts"></span> · <a href="/login" id="out">sign out</a></div>
+  </div>
+  <h2>My orders</h2>
+  <table id="orders"><thead><tr><th>Order</th><th>Product</th><th>Total</th><th>Status</th></tr></thead><tbody></tbody></table>
+  <h2>Open tickets</h2>
+  <div id="tickets" style="font-size:13px;color:#888">None.</div>
+  <div class="chat">
+    <h2 style="margin-top:0">Ask ShopBot</h2>
+    <div id="log"></div>
+    <div class="row"><input id="msg" placeholder="e.g. what's the status of my order?"><button id="send">Send</button></div>
+  </div>
+<script>
+  let sess = null;
+  const auth = (() => { try { return JSON.parse(localStorage.getItem("tufshop")); } catch(e){ return null; } })();
+  if (!auth) location.href = "/login";
+  const log = document.getElementById("log");
+
+  async function load() {
+    const r = await fetch("/api/account?token=" + encodeURIComponent(auth.token));
+    if (!r.ok) { location.href = "/login"; return; }
+    const d = await r.json();
+    document.getElementById("who").textContent = d.account.name;
+    document.getElementById("pts").textContent = d.loyalty + " pts";
+    const tb = document.querySelector("#orders tbody");
+    tb.innerHTML = Object.entries(d.orders).map(([id, o]) =>
+      `<tr><td>${id}</td><td>${o.product}</td><td>$${(o.price*o.quantity).toFixed(2)}</td><td>${o.status}</td></tr>`).join("")
+      || `<tr><td colspan="4" style="color:#888">No orders.</td></tr>`;
+    document.getElementById("tickets").textContent = d.open_tickets.length
+      ? d.open_tickets.map(t => `#${t.id} ${t.subject}`).join(", ") : "None.";
+  }
+  document.getElementById("send").addEventListener("click", async () => {
+    const input = document.getElementById("msg");
+    const text = input.value.trim(); if (!text) return;
+    log.textContent += "You: " + text + "\n"; input.value = "";
+    const r = await fetch("/api/chat", {method:"POST", headers:{"content-type":"application/json"},
+      body: JSON.stringify({message:text, session:sess, token:auth.token})});
+    const d = await r.json(); sess = d.session;
+    log.textContent += "ShopBot: " + (d.reply || "(no reply)") + "\n\n";
+    load();
+  });
+  document.getElementById("out").addEventListener("click", () => { try{ localStorage.removeItem("tufshop"); }catch(e){} });
+  load();
+</script>
+</body>
+</html>

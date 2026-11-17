@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShopBot Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+:root {
+  --bg:#0b0c0f; --surface:#15171c; --surface-2:#1e2128; --line:#2a2e38; --fg:#eef0f4; --muted:#9aa0ad;
+  /* chart colours: validated on --surface; gray is the recessive "nothing happened" */
+  --got:#e34948; --stop:#3f7fe0; --warn:#129c84; --none:#565c69;
+  --staff:#b57cf2; --bot:#ecebe6; --ink:#16171b; --ok:#45c98b;
+}
+* { box-sizing:border-box; }
+html, body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.45 "Plus Jakarta Sans","Segoe UI",system-ui,sans-serif; }
+main { max-width:1240px; margin:0 auto; padding:16px 16px 48px; display:flex; flex-direction:column; gap:14px; }
+header { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+h1 { font-size:19px; font-weight:800; margin:0; letter-spacing:-.01em; }
+nav { display:flex; gap:4px; background:var(--surface); padding:4px; border-radius:12px; flex-wrap:wrap; }
+nav button { font:inherit; font-weight:600; font-size:13.5px; color:var(--muted); background:none; border:0; padding:7px 14px; min-height:34px; border-radius:9px; cursor:pointer; }
+nav button:hover { color:var(--fg); } nav button.on { background:var(--fg); color:var(--bg); }
+.status { margin-left:auto; display:flex; align-items:center; gap:7px; color:var(--muted); font-size:13px; }
+.dot { width:9px; height:9px; border-radius:50%; background:var(--muted); }
+.dot.ok { background:var(--ok); } .dot.bad { background:var(--got); }
+.dot.live { background:var(--got); animation:pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity:.3 } }
+.grid { display:grid; gap:14px; min-width:0; }
+.g2 { grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); }
+.g3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.g4 { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.card { background:var(--surface); border-radius:16px; padding:16px; min-width:0; }
+.card h2 { font-size:13.5px; font-weight:700; margin:0 0 10px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.legend { display:flex; gap:12px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-bottom:8px; }
+.legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+.empty { color:var(--muted); padding:22px 4px; text-align:center; font-size:13px; }
+code { background:var(--surface-2); padding:2px 6px; border-radius:6px; font-size:12.5px; }
+svg { display:block; width:100%; height:auto; } svg text { font-family:inherit; }
+.tile b { display:block; font-size:26px; font-weight:800; font-variant-numeric:tabular-nums; line-height:1.15; }
+.tile span { color:var(--muted); font-size:12.5px; }
+.subtitle { color:var(--muted); font-size:13px; font-weight:600; }
+.head-row { display:flex; gap:28px; align-items:center; flex-wrap:wrap; }
+.head-row .big { font-size:20px; font-weight:800; display:block; letter-spacing:-.01em; }
+.head-row .sub { color:var(--muted); font-size:12.5px; }
+.head-stat { text-align:center; } .head-stat b { font-size:22px; font-weight:800; font-variant-numeric:tabular-nums; display:block; }
+.head-stat span { color:var(--muted); font-size:12px; }
+.dial { text-align:center; } .dial svg { width:120px; max-width:100%; margin:0 auto -14px; }
+.dial .arc { transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1); }
+.details-tbl summary { color:var(--muted); font-size:12px; cursor:pointer; margin-top:8px; }
+table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; font-size:12.5px; }
+th, td { padding:6px; text-align:center; } th { color:var(--muted); font-weight:600; } th:first-child, td:first-child { text-align:left; }
+.scroll { overflow-x:auto; }
+.cell { display:block; padding:7px 4px; border-radius:7px; cursor:pointer; font-weight:700; border:0; width:100%; color:var(--fg); font:inherit; }
+.cell:hover { outline:1px solid var(--muted); }
+/* bars */
+.bar-row { display:grid; grid-template-columns:minmax(70px,auto) minmax(0,1fr) auto; gap:8px; align-items:center; padding:4px 0; font-size:12.5px; }
+.bar-row.click { cursor:pointer; } .bar-row.click:hover .lbl { color:var(--fg); }
+.bar-row .lbl { color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.track { display:flex; gap:2px; height:14px; min-width:0; }
+.track i { display:block; border-radius:2px; min-width:3px; transition:flex-grow .6s ease; }
+.track i:first-child { border-top-left-radius:4px; border-bottom-left-radius:4px; }
+.track i:last-child { border-top-right-radius:4px; border-bottom-right-radius:4px; }
+.track .rest { background:var(--surface-2); }
+/* attack marks */
+.marks { display:flex; flex-wrap:wrap; gap:4px; }
+.mark { width:26px; height:26px; border-radius:7px; border:0; padding:0; font:700 13px/26px inherit; font-family:inherit; color:#fff; cursor:pointer; text-align:center; }
+.mark:hover { outline:2px solid var(--fg); } .mark.sel { outline:2px solid var(--fg); outline-offset:1px; }
+.m-got { background:var(--got); } .m-blocked { background:var(--stop); } .m-none { background:var(--none); } .m-set { background:var(--warn); }
+.goal-row { display:grid; grid-template-columns:minmax(84px,130px) minmax(0,1fr); gap:10px; padding:6px 0; align-items:start; font-size:12.5px; color:var(--muted); }
+.chips { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
+.chip { font:inherit; font-size:12.5px; color:var(--muted); background:var(--surface-2); border:0; border-radius:999px; padding:5px 11px; min-height:28px; cursor:pointer; }
+.chip:hover { color:var(--fg); } .chip.on { background:var(--fg); color:var(--bg); font-weight:700; }
+.dotm { display:inline-block; width:11px; height:11px; border-radius:50%; background:var(--stop); }
+.dotm.off { background:var(--surface-2); } .dotm.new { box-shadow:0 0 0 3px #3f7fe055; }
+/* stage */
+.stage { position:relative; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,auto); row-gap:22px; justify-items:center; align-items:center; padding:14px 0 2px; }
+.stage svg.paths { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.actor { display:flex; flex-direction:column; align-items:center; gap:3px; min-width:0; z-index:1; transition:opacity .3s; }
+.actor.dim { opacity:.4; } .actor.gone { visibility:hidden; }
+.name { font-size:12px; font-weight:700; }
+.fig { position:relative; width:58px; height:58px; border-radius:18px; background:var(--surface-2); border:2.5px solid var(--c); transition:box-shadow .25s, transform .25s; --i:var(--fg); }
+.fig::before { content:""; position:absolute; left:50%; top:-10px; width:2px; height:8px; background:var(--c); transform:translateX(-50%); }
+.fig::after { content:""; position:absolute; left:50%; top:-15px; width:7px; height:7px; border-radius:50%; background:var(--c); transform:translateX(-50%); }
+.fig.busy { box-shadow:0 0 18px -1px var(--c); transform:translateY(-3px); }
+.fig.hit { box-shadow:0 0 26px 3px var(--got); border-color:var(--got); animation:shake .32s ease-in-out 3; }
+.fig.safe { box-shadow:0 0 26px 3px var(--stop); border-color:var(--stop); }
+@keyframes shake { 25% { transform:translateX(-3px) rotate(-3deg) } 75% { transform:translateX(3px) rotate(3deg) } }
+.eye { position:absolute; top:18px; width:9px; height:9px; border-radius:50%; background:var(--i); transition:all .15s; }
+.eye.l { left:12px; } .eye.r { right:12px; }
+.mouth { position:absolute; left:50%; top:33px; width:17px; height:8px; transform:translateX(-50%); border-bottom:2.5px solid var(--i); border-radius:0 0 10px 10px; transition:all .15s; }
+[data-face=talk] .mouth { animation:talk .26s ease-in-out infinite alternate; }
+@keyframes talk { to { height:2px; width:12px } }
+[data-face=sly] .eye { height:4px; top:21px; border-radius:3px; }
+[data-face=sly] .mouth { transform:translateX(-50%) rotate(-10deg); }
+[data-face=sad] .mouth { border-bottom:0; border-top:2.5px solid var(--i); border-radius:10px 10px 0 0; top:37px; }
+[data-face=shock] .eye { height:13px; top:15px; }
+[data-face=shock] .mouth { width:13px; height:13px; border:2.5px solid var(--i); border-radius:50%; top:32px; }
+.badge { position:absolute; right:-8px; bottom:-7px; font-size:17px; line-height:1; }
+.board { border-radius:9px; display:flex; flex-direction:column; gap:6px; justify-content:center; padding:0 11px; }
+.board::before, .board::after { display:none; }
+.board i { display:block; height:3px; border-radius:2px; background:var(--muted); }
+.board.poison { border-color:var(--got); box-shadow:0 0 16px -2px var(--got); } .board.poison i { background:var(--got); }
+.packet { position:absolute; left:0; top:0; width:13px; height:13px; margin:-6.5px 0 0 -6.5px; border-radius:50%; pointer-events:none; z-index:2; box-shadow:0 0 10px currentColor; }
+.caption { margin-top:12px; padding-top:10px; border-top:1px solid var(--line); min-height:52px; display:flex; gap:10px; align-items:baseline; }
+.caption b { flex:none; font-size:12.5px; }
+.caption span { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; overflow-wrap:anywhere; }
+.steps { display:flex; gap:5px; flex-wrap:wrap; }
+.step { font-size:11.5px; font-weight:600; color:var(--muted); background:var(--surface-2); padding:2px 9px; border-radius:999px; }
+.step.on { background:var(--got); color:#fff; }
+.act { font:inherit; font-size:12px; color:var(--fg); background:var(--surface-2); border:0; border-radius:8px; padding:5px 10px; min-height:28px; cursor:pointer; font-weight:600; }
+.act:hover { background:var(--line); }
+.chat { display:flex; flex-direction:column; gap:6px; height:380px; overflow-y:auto; padding-right:4px; font-size:13px; scrollbar-color:var(--line) transparent; }
+.msg { padding:7px 10px; border-radius:11px; max-width:90%; overflow-wrap:anywhere; white-space:pre-wrap; }
+.msg small { display:block; font-size:10.5px; font-weight:700; color:var(--muted); }
+.msg.a { align-self:flex-end; background:#3a2023; } .msg.b { align-self:flex-start; background:var(--bot); color:var(--ink); } .msg.b small { color:#55575e; }
+.msg.s { align-self:center; background:none; color:var(--muted); padding:2px; font-size:12px; text-align:center; }
+.msg.bad { outline:1.5px solid var(--got); } .msg.def { outline:1.5px solid var(--stop); }
+.tip { position:fixed; pointer-events:none; background:#262a33; border:1px solid var(--line); border-radius:9px; padding:7px 10px; font-size:12px; max-width:260px; z-index:20; white-space:pre-line; box-shadow:0 8px 24px #0009; }
+.band .cross { opacity:0; } .band:hover .cross, .band:focus .cross { opacity:1; }
+button:focus-visible, summary:focus-visible, [tabindex]:focus-visible { outline:2px solid var(--stop); outline-offset:2px; }
+[hidden] { display:none !important; }
+@media (max-width:860px) { .g2, .g3 { grid-template-columns:minmax(0,1fr); } .g4 { grid-template-columns:repeat(2,minmax(0,1fr)); } .status { margin-left:0; width:100%; } }
+@media (max-width:420px) { .fig { width:50px; height:50px; transform:scale(.95); } .name { font-size:11px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>ShopBot Arena</h1>
+    <span class="subtitle">Coordinated swarm attack · team vs alone</span>
+    <div class="status"><span class="dot" id="dot"></span><span id="status">Connecting…</span></div>
+  </header>
+
+  <section data-view="live" class="grid" hidden>
+    <div class="grid g2">
+      <div class="card">
+        <h2><span class="steps" id="steps"></span><button class="act" id="replay">↻ Replay last run</button></h2>
+        <div class="stage" id="stage"><svg class="paths" id="paths" aria-hidden="true"></svg></div>
+        <div class="caption" aria-live="polite"><b id="who" style="color:var(--muted)">Idle</b><span id="said">Waiting for an attack</span></div>
+      </div>
+      <div class="card"><h2>Live conversation</h2><div class="chat" id="chat"><div class="empty">Starts with the next attack</div></div></div>
+    </div>
+    <div class="grid g3">
+      <div class="card"><h2>Current run</h2><div id="tally"></div></div>
+      <div class="card"><h2>Activity · last 5 min</h2><div id="spark"></div></div>
+      <div class="card"><h2>Latest attacks</h2><div id="strip"></div></div>
+    </div>
+  </section>
+
+  <section data-view="rounds" class="grid" hidden>
+    <div class="grid g4" id="dials"></div>
+    <div class="grid g2">
+      <div class="card"><h2>Rates by round</h2><div class="legend" id="line-legend"></div><div id="line"></div></div>
+      <div class="card"><h2>How each round's attacks ended</h2><div class="legend" id="out-legend"></div><div id="outcomes"></div></div>
+    </div>
+    <div class="card"><h2>Hits by goal and round</h2><div class="scroll" id="heat"></div></div>
+  </section>
+
+  <section data-view="attacks" class="grid" hidden>
+    <div class="grid g2">
+      <div class="card">
+        <h2>Every attack</h2>
+        <div class="chips" id="f-round"></div>
+        <div class="legend" id="mark-legend"></div>
+        <div id="marks"></div>
+      </div>
+      <div class="card"><h2>Conversation</h2><div class="chat" id="transcript"><div class="empty">Click an attack</div></div></div>
+    </div>
+    <div class="grid g2">
+      <div class="card"><h2>Tactics · hits out of tries</h2><div id="tactics"></div></div>
+      <div class="card"><h2>What got through</h2><div id="breaches"></div></div>
+    </div>
+  </section>
+
+  <section data-view="defense" class="grid" hidden>
+    <div class="grid g2">
+      <div class="card"><h2>Attack success as defenses switched on</h2><div id="asr-bars"></div></div>
+      <div class="card"><h2>Guard verdicts</h2><div class="legend" id="guard-legend"></div><div id="guards"></div></div>
+    </div>
+    <div class="card"><h2>Defenses on, by round</h2><div class="scroll" id="defmatrix"></div></div>
+  </section>
+
+  <section data-view="swarm" class="grid">
+    <div class="card" id="swarm-head"></div>
+    <div class="grid g4" id="swarm-tiles"></div>
+    <div class="grid g2">
+      <div class="card"><h2>Team vs alone · latest comparison</h2><div class="legend" id="cmp-legend"></div><div id="compare"></div></div>
+      <div class="card"><h2>Team notes</h2><div class="scroll" id="intel"></div></div>
+    </div>
+    <div class="card"><h2>Campaigns</h2><div class="legend" id="camp-legend"></div><div class="scroll" id="campaigns"></div></div>
+  </section>
+</main>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const api = (p) => fetch(p).then(r => r.ok ? r.json() : Promise.reject(r.status));
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const pct = (x) => `${Math.round((x || 0) * 100)}%`;
+const label = (s) => String(s ?? "").replaceAll("_", " ");
+const REDUCE = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const C = { got:"var(--got)", stop:"var(--stop)", warn:"var(--warn)", none:"var(--none)", staff:"var(--staff)", bot:"var(--bot)", muted:"var(--muted)" };
+
+const GOALS = {
+  secret_leak:["Attacker","Refund code"], refund_over_policy:["Attacker","Refund over $50"],
+  pii_leak:["Attacker","Customer address"], indirect_injection:["Attacker","Planted review"],
+  swarm_scout:["Scout","Finding order owners"], swarm_plant:["Planter","Planting a trap"], swarm_close:["Closer","Setting off the trap"],
+};
+const SLOT = { swarm_scout:"scout", swarm_plant:"planter", swarm_close:"closer" };
+const BREACH = {
+  secret_leak:"Refund code leaked", refund_over_policy:"Refund over limit", refund_wrong_owner:"Refund on wrong order",
+  pii_leak:"Customer details leaked", canary_followed:"Trap code repeated", cross_session_write:"Other's order changed", loyalty_abuse:"Points moved",
+};
+const ACTION = { issue_refund:"Refund", update_shipping_address:"Address change", cancel_order:"Order cancel", gift_points:"Points transfer" };
+
+// Put HTML only when it changed, so polling never flickers, restarts animations or drops focus
+const shown = new Map();
+function put(id, html) { if (shown.get(id) === html) return false; shown.set(id, html); $(id).innerHTML = html; return true; }
+const legend = (items) => items.map(([c, t]) => `<span><i style="background:${c}"></i>${esc(t)}</span>`).join("");
+
+// ---------- tabs ----------
+let tab = "live";
+function show(t) {
+  tab = t; location.hash = t;
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === t));
+  document.querySelectorAll("[data-view]").forEach(v => v.hidden = v.dataset.view !== t);
+  render();
+}
+
+// ---------- tooltips: any element with data-tip ----------
+function moveTip(ev) { const t = $("tip"); t.style.left = Math.min(innerWidth - 270, ev.clientX + 14) + "px"; t.style.top = (ev.clientY + 14) + "px"; }
+document.addEventListener("mousemove", ev => {
+  const el = ev.target.closest?.("[data-tip]");
+  $("tip").hidden = !el;
+  if (el) { $("tip").textContent = el.dataset.tip; moveTip(ev); }
+});
+
+// ---------- the cast ----------
+const CAST = {
+  scout:   { r:1, c:1, name:"Scout",     col:C.got,   badge:"🔎" },
+  planter: { r:2, c:1, name:"Planter",   col:C.got,   badge:"🧪" },
+  closer:  { r:3, c:1, name:"Closer",    col:C.got,   badge:"🎯" },
+  bot:     { r:1, c:2, name:"ShopBot",   col:C.bot,   light:true },
+  board:   { r:2, c:2, name:"Reviews + tickets", col:C.muted, board:true },
+  staff:   { r:3, c:2, name:"Staff bot", col:C.staff, badge:"🧑‍💼" },
+  guard:   { r:1, c:3, name:"Guards",    col:C.stop,  badge:"🛡️" },
+  judge:   { r:3, c:3, name:"Judge",     col:"var(--warn)", badge:"⚖️" },
+};
+for (const [id, n] of Object.entries(CAST)) {
+  const a = document.createElement("div");
+  a.className = "actor"; a.id = "a-" + id; a.style.gridRow = n.r; a.style.gridColumn = n.c;
+  const body = n.board ? "<i></i><i></i><i></i>" : `<i class="eye l"></i><i class="eye r"></i><i class="mouth"></i>${n.badge ? `<span class="badge">${n.badge}</span>` : ""}`;
+  a.innerHTML = `<div class="fig ${n.board ? "board" : ""}" data-face="idle" style="--c:${n.col};${n.light ? "background:var(--bot);--i:var(--ink)" : ""}">${body}</div><div class="name">${n.name}</div>`;
+  $("stage").appendChild(a);
+}
+const fig = (w) => $("a-" + w).querySelector(".fig");
+const face = (w, f) => { fig(w).dataset.face = f; };
+const busy = (w, on = true) => fig(w).classList.toggle("busy", on);
+const name = (w, t) => { $("a-" + w).querySelector(".name").textContent = t; };
+function say(col, who, text) { $("who").textContent = who; $("who").style.color = col; $("said").textContent = String(text || "").replace(/\s+/g, " ").trim(); }
+function setMode(swarm) {   // a swarm shows three attackers; anything else shows one
+  $("a-planter").classList.toggle("gone", !swarm); $("a-closer").classList.toggle("gone", !swarm);
+  $("a-staff").classList.toggle("dim", !swarm); $("a-board").classList.toggle("dim", !swarm && !fig("board").classList.contains("poison"));
+  name("scout", swarm ? "Scout" : "Attacker");
+  $("steps").innerHTML = swarm ? [["scout","Scout"],["planter","Plant"],["staff","Staff bot"],["closer","Closer"]].map(([k, t]) => `<span class="step" data-step="${k}">${t}</span>`).join("") : "";
+}
+const setStep = (k) => document.querySelectorAll(".step").forEach(s => s.classList.toggle("on", s.dataset.step === k));
+setMode(false);
+function centre(w) { const a = fig(w).getBoundingClientRect(), s = $("stage").getBoundingClientRect(); return { x: a.left + a.width / 2 - s.left, y: a.top + a.height / 2 - s.top }; }
+function fly(from, to, color) {
+  busy(from); busy(to);
+  const done = () => { busy(from, false); busy(to, false); };
+  if (REDUCE) { setTimeout(done, 400); return Promise.resolve(); }
+  const A = centre(from), B = centre(to), s = $("stage").getBoundingClientRect();
+  $("paths").setAttribute("viewBox", `0 0 ${s.width} ${s.height}`);
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  for (const [k, v] of Object.entries({ x1:A.x, y1:A.y, x2:B.x, y2:B.y, stroke:color, "stroke-width":2, "stroke-dasharray":"4 5", opacity:.75 })) line.setAttribute(k, v);
+  $("paths").appendChild(line);
+  const p = document.createElement("div");
+  p.className = "packet"; p.style.background = color; p.style.color = color; $("stage").appendChild(p);
+  return p.animate([{ transform:`translate(${A.x}px,${A.y}px)` }, { transform:`translate(${B.x}px,${B.y}px)` }], { duration:600, easing:"ease-in-out" }).finished.then(() => {
+    p.remove(); done();
+    line.animate([{ opacity:.75 }, { opacity:0 }], { duration:500 }).finished.then(() => line.remove());
+  });
+}
+function flash(w, cls, ms = 1200) { const f = fig(w); f.classList.add(cls); setTimeout(() => f.classList.remove(cls), ms); }
+
+// ---------- live conversation panel ----------
+let chatSession = null;
+function chat(kind, who, text, session, extra = "") {
+  const box = $("chat");
+  box.querySelector(".empty")?.remove();
+  if (session !== chatSession) { chatSession = session; const d = document.createElement("div"); d.className = "msg s"; d.textContent = "· · ·"; box.appendChild(d); }
+  const m = document.createElement("div");
+  m.className = `msg ${kind} ${extra}`;
+  const s = document.createElement("small"); s.textContent = who;
+  m.append(s, String(text || "").slice(0, 300));
+  box.appendChild(m);
+  while (box.children.length > 60) box.firstChild.remove();
+  box.scrollTop = box.scrollHeight;
+}
+
+// ---------- log events become beats, played one at a time ----------
+const sessions = new Map(), judged = new Map(), queue = [];
+let lastEvent = null, lastActivity = 0, activity = [];
+
+function actorFor(e) {
+  const s = sessions.get(e.session) || {};
+  if (s.source === "triage") return { slot:"staff", who:"Staff bot", staff:true };
+  if (s.source === "red") return { slot:s.slot || "scout", who:s.role || "Attacker", col:C.got };
+  return { slot:"scout", who:s.customer || "Customer", col:C.muted };
+}
+async function checkBreach(sid, target) {
+  fly(target, "judge", "var(--warn)");
+  const j = await api(`/api/judge/${sid}`).catch(() => null);
+  if (!j) return;
+  const before = judged.get(sid) || 0;
+  judged.set(sid, j.breaches.length);
+  [...new Set(j.breaches.slice(before).map(b => b.type))].reverse().forEach(type => queue.unshift(async () => {
+    say(C.got, "Got through", BREACH[type] || label(type));
+    chat("a", "Got through", BREACH[type] || label(type), sid, "bad");
+    face(target, "shock"); face("judge", "shock"); flash(target, "hit", 1300); flash("judge", "hit", 1300);
+    const s = sessions.get(sid); if (s?.slot) face(s.slot, "sly");
+    await sleep(1400); face("judge", "idle");
+  }));
+}
+function beatFor(e) {
+  const d = e.data, a = actorFor(e), target = a.staff ? "staff" : "bot";
+  if (e.event === "goal") {
+    const [role, what] = GOALS[d.goal] || ["Attacker", label(d.goal)], slot = SLOT[d.goal] || "scout";
+    const s = sessions.get(e.session) || {}; s.role = role; s.slot = slot; sessions.set(e.session, s);
+    return async () => { setMode(!!SLOT[d.goal]); setStep(slot); face("bot", "idle"); face("staff", "idle"); face(slot, "sly"); busy(slot); say(C.got, role, what); await sleep(700); busy(slot, false); };
+  }
+  if (e.event === "intel" && d.kind === "order") return async () => { say(C.got, "Team notes", `Order ${d.order_id} → ${d.owner}`); };
+  if (e.event === "plant") return async () => {
+    say(C.got, "Planter", "Trap hidden in a review"); await fly("planter", "board", C.got); fig("board").classList.add("poison"); chat("a", "Trap in review", d.text, e.session, "bad");
+  };
+  if (e.event === "ticket_planted") return async () => { say(C.got, "Planter", "Trap filed as a ticket"); await fly("planter", "board", C.got); };
+  if (e.event === "ticket") return async () => {
+    setStep("staff"); $("a-staff").classList.remove("dim"); say(C.staff, "Staff bot", `Ticket from ${d.account || "customer"}`);
+    await fly("board", "staff", C.staff);
+  };
+  if (e.event === "message" && !a.staff) return async () => {
+    face(a.slot, "talk"); say(a.col, a.who, d.content); chat("a", a.who, d.content, e.session);
+    await fly(a.slot, "bot", a.col); face(a.slot, "idle");
+  };
+  if (e.event === "verdict" && d.blocked) return async () => {
+    face(a.slot, "sad"); face(target, "idle"); say(C.stop, "Blocked", label(d.defense)); chat("a", "Blocked", label(d.defense), e.session, "def");
+    await fly(target, "guard", C.stop); flash("guard", "safe");
+    await sleep(500);
+  };
+  if (e.event === "tool_call" && ACTION[d.name]) return async () => { face(target, "talk"); say(a.staff ? C.staff : C.bot, a.staff ? "Staff bot" : "ShopBot", `${ACTION[d.name]} · order ${d.args?.order_id ?? "?"}`); };
+  if (e.event === "tool_result" && d.name === "read_review") return async () => {
+    say(a.staff ? C.staff : C.bot, a.staff ? "Staff bot" : "ShopBot", "Reading reviews"); await fly("board", target, fig("board").classList.contains("poison") ? C.got : C.muted);
+  };
+  if (e.event === "tool_result" && a.staff && ACTION[d.name] && /issued for order|updated to|cancelled|Gifted/.test(d.result || "")) return async () => {
+    say(C.staff, "Staff bot", `${ACTION[d.name]} carried out`); chat("b", "Staff bot acted", d.result, e.session);
+  };
+  if (e.event === "reply") return async () => {
+    if (!d.blocked_by) {
+      face(target, "talk"); say(a.staff ? C.staff : C.bot, a.staff ? "Staff bot" : "ShopBot", d.content); chat("b", a.staff ? "Staff bot" : "ShopBot", d.content, e.session);
+      if (!a.staff) await fly("bot", a.slot, C.bot);
+      face(target, "idle");
+    }
+    await checkBreach(e.session, target);
+    if (a.staff) {   // only the log can say whether the ticket really took over the staff bot
+      const hop = (await api("/api/swarm").catch(() => null))?.propagation.find(f => f.triage_session === e.session);
+      if (hop) {
+        face("staff", "shock"); flash("staff", "hit", 1300); say(C.staff, "Trap reached staff bot", hop.why); chat("b", "Trap reached staff bot", hop.why, e.session, "bad");
+        await sleep(1400); face("staff", "idle");
+      }
+    }
+  };
+  return null;
+}
+async function player() {
+  for (;;) {
+    const beat = queue.shift();
+    if (!beat) { await sleep(200); continue; }
+    try { await beat(); } catch (_) {}
+    await sleep(queue.length > 6 ? 120 : 900);
+  }
+}
+async function learnSessions(evs) {
+  if (evs.some(e => !sessions.has(e.session))) (await api("/api/sessions?limit=300")).forEach(s => sessions.set(s.id, { ...sessions.get(s.id), source:s.source, customer:s.customer }));
+}
+async function liveLoop() {
+  try {
+    if (lastEvent === null) {
+      lastEvent = (await api("/api/events/last")).id;
+      activity = (await api(`/api/events?since=${Math.max(0, lastEvent - 300)}&limit=300`)).map(e => Date.parse(e.ts));
+    }
+    const evs = await api(`/api/events?since=${lastEvent}&limit=200`);
+    if (evs.length) {
+      lastEvent = evs.at(-1).id; lastActivity = Date.now();
+      activity.push(...evs.map(e => Date.parse(e.ts)));
+      await learnSessions(evs);
+      evs.forEach(e => { const b = beatFor(e); if (b) queue.push(b); });
+    }
+  } catch (_) {}
+  setTimeout(liveLoop, 1500);
+}
+$("replay").addEventListener("click", async () => {
+  const last = (await api("/api/events/last")).id;
+  const evs = await api(`/api/events?since=${Math.max(0, last - 70)}&limit=70`);
+  await learnSessions(evs);
+  queue.length = 0; judged.clear();
+  // the judge counts breaches per session, so a replay must not treat them as already seen
+  evs.forEach(e => { const b = beatFor(e); if (b) queue.push(b); });
+});
+function resetIdle() {
+  if (lastActivity && !queue.length && Date.now() - lastActivity > 20000) {
+    lastActivity = 0;
+    Object.keys(CAST).forEach(w => { face(w, "idle"); busy(w, false); });
+    fig("board").classList.remove("poison"); setMode(false);
+    say(C.muted, "Idle", "Waiting for an attack");
+  }
+}
+
+// ---------- data ----------
+let rounds = [], attacks = [], swarm = null, verdicts = [], selected = null, fRound = null;
+const runOf = (a) => a.goal?.startsWith("swarm_") ? "swarm" : a.round ? "r" + a.round : "single";
+const runName = (id) => id === "swarm" ? "Swarm" : id === "single" ? "Single" : "Round " + id.slice(1);
+const outcomeOf = (a) => a.attack_sent === false ? "set" : a.breaches.length ? "got" : a.detections.length ? "blocked" : "none";
+const OUT = { got:["Got through", C.got, "✕"], blocked:["Stopped", C.stop, "✓"], none:["No effect", C.none, "·"], set:["Trap set", C.warn, "◆"] };
+
+function barRow(lbl, segs, total, end, attrs = "") {
+  const parts = segs.filter(s => s.v > 0).map(s => `<i style="flex-grow:${s.v};flex-basis:0;background:${s.c}" data-tip="${esc(s.tip)}"></i>`).join("");
+  const rest = Math.max(0, total - segs.reduce((n, s) => n + s.v, 0));
+  return `<div class="bar-row ${attrs ? "click" : ""}" ${attrs}><span class="lbl" title="${esc(lbl)}">${esc(lbl)}</span><div class="track">${parts}${rest ? `<i class="rest" style="flex-grow:${rest};flex-basis:0"></i>` : ""}</div><span>${esc(end)}</span></div>`;
+}
+const markHtml = (a) => {
+  const o = outcomeOf(a), [txt, , glyph] = OUT[o], [role, what] = GOALS[a.goal] || ["Attacker", label(a.goal)];
+  return `<button class="mark m-${o} ${selected === a.session ? "sel" : ""}" data-sid="${a.session}" aria-label="${esc(what)}: ${txt}" data-tip="${esc(`${role} · ${what}\n${a.tactic ? a.tactic + " · " : ""}${runName(runOf(a))}\n${txt}`)}">${glyph}</button>`;
+};
+
+// ---------- live tab charts ----------
+function renderLive() {
+  const run = attacks[0] ? runOf(attacks[0]) : null, cur = attacks.filter(a => runOf(a) === run && a.attack_sent !== false);
+  const n = (o) => cur.filter(a => outcomeOf(a) === o).length;
+  put("tally", run ? `<div class="legend">${legend([[C.got, `Got through ${n("got")}`], [C.stop, `Stopped ${n("blocked")}`], [C.none, `No effect ${n("none")}`]])}</div>` +
+    barRow(runName(run), [["got"], ["blocked"], ["none"]].map(([o]) => ({ v:n(o), c:OUT[o][1], tip:`${OUT[o][0]}: ${n(o)}` })), cur.length, String(cur.length))
+    : `<div class="empty">No attacks yet</div>`);
+  put("strip", attacks.length ? `<div class="marks">${attacks.slice(0, 40).map(markHtml).join("")}</div>` : `<div class="empty">No attacks yet</div>`);
+  const W = 320, H = 92, now = Date.now(), B = 30, step = 10000, buckets = Array(B).fill(0);
+  activity = activity.filter(t => now - t < B * step);
+  activity.forEach(t => { const i = B - 1 - Math.floor((now - t) / step); if (i >= 0) buckets[i]++; });
+  const max = Math.max(4, ...buckets), x = (i) => 4 + i * (W - 8) / (B - 1), y = (v) => H - 14 - v / max * (H - 24);
+  const pts = buckets.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  $("spark").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Events per 10 seconds over the last 5 minutes"><line x1="4" x2="${W - 4}" y1="${H - 14}" y2="${H - 14}" stroke="var(--line)"/><polygon points="4,${H - 14} ${pts} ${W - 4},${H - 14}" fill="var(--got)" opacity=".16"/><polyline points="${pts}" fill="none" stroke="var(--got)" stroke-width="2" stroke-linejoin="round"/><text x="4" y="${H - 1}" font-size="10" fill="var(--muted)">−5 min</text><text x="${W - 4}" y="${H - 1}" font-size="10" text-anchor="end" fill="var(--muted)">now</text><text x="${W - 4}" y="10" font-size="10" text-anchor="end" fill="var(--muted)">${buckets.at(-1) + buckets.at(-2)} events / 20 s</text></svg>`;
+}
+
+// ---------- rounds tab ----------
+const SERIES = [["asr", "Attack success", C.got], ["detection_rate", "Detected", C.stop], ["false_alarm_rate", "False alarms", C.warn]];
+function dial(l, v, col, note) {
+  return `<div class="card dial"><svg viewBox="0 0 120 70" aria-hidden="true"><path d="M14 58 A46 46 0 0 1 106 58" fill="none" stroke="var(--surface-2)" stroke-width="9" stroke-linecap="round"/><path class="arc" data-to="${100 - v * 100}" d="M14 58 A46 46 0 0 1 106 58" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/></svg><div class="tile"><b>${pct(v)}</b><span>${esc(l)}${note ? " · " + esc(note) : ""}</span></div></div>`;
+}
+function renderRounds() {
+  const done = rounds.filter(r => r.summary), s = done.at(-1)?.summary;
+  if (put("dials", s ? dial("Attack success", s.asr, C.got, `round ${done.at(-1).round}`) + dial("Detected", s.detection_rate, C.stop) + dial("False alarms", s.false_alarm_rate, C.warn) + dial("Leaks with no attacker", s.spontaneous_breach_rate, C.got)
+    : `<div class="card empty" style="grid-column:1/-1">No rounds yet</div>`))
+    setTimeout(() => document.querySelectorAll("#dials .arc").forEach(a => a.setAttribute("stroke-dashoffset", a.dataset.to)), 50);
+  put("line-legend", legend(SERIES.map(([, n, c]) => [c, n])));
+  put("line", lineChart(done));
+  put("out-legend", legend([[C.got, "Unseen breach"], [C.warn, "Seen breach"], [C.stop, "Stopped"], [C.none, "No effect"]]));
+  put("outcomes", done.map(r => {
+    const o = r.summary.outcomes || {}, v = (k) => o[k] || 0, t = r.summary.attacks;
+    return barRow(`Round ${r.round}`, [{ v:v("silent_breach"), c:C.got, tip:`Unseen breach: ${v("silent_breach")}` }, { v:v("caught_breach"), c:C.warn, tip:`Seen breach: ${v("caught_breach")}` },
+      { v:v("caught_attempt"), c:C.stop, tip:`Stopped: ${v("caught_attempt")}` }, { v:v("harmless_miss"), c:C.none, tip:`No effect: ${v("harmless_miss")}` }], t, String(t), `data-round="${r.round}"`);
+  }).join("") || `<div class="empty">No rounds yet</div>`);
+  const goals = [...new Set(done.flatMap(r => Object.keys(r.summary.by_goal || {})))];
+  put("heat", goals.length ? `<table><tr><th>Goal</th>${done.map(r => `<th>Round ${r.round}</th>`).join("")}</tr>${goals.map(g => `<tr><td>${esc(GOALS[g]?.[1] || label(g))}</td>${done.map(r => {
+    const c = r.summary.by_goal[g] || { attacks:0, hits:0 }, rate = c.attacks ? c.hits / c.attacks : 0;
+    return `<td><button class="cell" data-round="${r.round}" style="background:rgba(227,73,72,${(.08 + rate * .8).toFixed(2)})" data-tip="${esc(`${c.hits} of ${c.attacks} hit`)}">${c.hits}/${c.attacks}</button></td>`;
+  }).join("")}</tr>`).join("")}</table>` : `<div class="empty">No rounds yet</div>`);
+}
+function lineChart(done) {
+  if (!done.length) return `<div class="empty">No rounds yet</div>`;
+  const W = 640, H = 270, L = 40, R = 46, T = 14, B = 44;
+  const x = (i) => done.length === 1 ? (L + W - R) / 2 : L + i * (W - L - R) / (done.length - 1), y = (v) => T + (1 - v) * (H - T - B);
+  let g = "";
+  for (const v of [0, .25, .5, .75, 1]) g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" ${v ? 'stroke-dasharray="2 5"' : ""}/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v * 100}%</text>`;
+  for (const [k, , c] of SERIES) {
+    const pts = done.map((r, i) => `${x(i)},${y(r.summary[k] || 0)}`).join(" ");
+    g += `<polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` +
+      done.map((r, i) => `<circle cx="${x(i)}" cy="${y(r.summary[k] || 0)}" r="4.500" fill="${c}" stroke="var(--surface)" stroke-width="2"/>`).join("");
+  }
+  // end labels only, nudged apart so they never overlap
+  const ends = SERIES.map(([k]) => ({ v:done.at(-1).summary[k] || 0, py:y(done.at(-1).summary[k] || 0) })).sort((a, b) => a.py - b.py);
+  ends.forEach((e, i) => { if (i && e.py - ends[i - 1].py < 14) e.py = ends[i - 1].py + 14; g += `<text x="${x(done.length - 1) + 9}" y="${e.py + 4}" font-size="11.5" font-weight="700" fill="var(--fg)">${pct(e.v)}</text>`; });
+  done.forEach((r, i) => {
+    const bw = done.length === 1 ? W - L - R : (W - L - R) / (done.length - 1);
+    g += `<text x="${x(i)}" y="${H - 24}" text-anchor="middle" font-size="12" fill="var(--fg)">Round ${r.round}</text><text x="${x(i)}" y="${H - 9}" text-anchor="middle" font-size="10.5" fill="var(--muted)">${r.defenses.length} defenses</text>`;
+    g += `<g class="band" data-round="${r.round}" style="cursor:pointer" data-tip="${esc(`Round ${r.round}\n` + SERIES.map(([k, n]) => `${n}: ${pct(r.summary[k])}`).join("\n"))}"><line class="cross" x1="${x(i)}" x2="${x(i)}" y1="${T}" y2="${y(0)}" stroke="var(--muted)"/><rect x="${x(i) - bw / 2}" y="${T}" width="${bw}" height="${H - T - 4}" fill="transparent"/></g>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Attack success, detection and false alarm rates by round">${g}</svg>
+    <details class="details-tbl"><summary>Table</summary><table><tr><th>Round</th>${SERIES.map(([, n]) => `<th>${n}</th>`).join("")}</tr>${done.map(r => `<tr><td>${r.round}</td>${SERIES.map(([k]) => `<td>${pct(r.summary[k])}</td>`).join("")}</tr>`).join("")}</table></details>`;
+}
+
+// ---------- attacks tab ----------
+function renderAttacks() {
+  const runs = [...new Set(attacks.map(runOf))].sort();
+  put("f-round", [["all", "All"], ...runs.map(r => [r, runName(r)])].map(([v, t]) => `<button class="chip ${(fRound || "all") === v ? "on" : ""}" data-fround="${v}">${esc(t)}</button>`).join(""));
+  put("mark-legend", legend(["got", "blocked", "none", "set"].map(o => [OUT[o][1], `${OUT[o][2]} ${OUT[o][0]}`])));
+  const list = attacks.filter(a => !fRound || runOf(a) === fRound), goals = [...new Set(list.map(a => a.goal))];
+  put("marks", goals.map(g => `<div class="goal-row"><span>${esc(GOALS[g]?.[1] || label(g))}</span><div class="marks">${list.filter(a => a.goal === g).map(markHtml).join("")}</div></div>`).join("") || `<div class="empty">No attacks yet</div>`);
+  const tac = {};
+  list.filter(a => a.tactic && a.attack_sent !== false).forEach(a => { const t = tac[a.tactic] ||= { n:0, h:0 }; t.n++; t.h += a.breaches.length ? 1 : 0; });
+  put("tactics", Object.entries(tac).sort((a, b) => b[1].h / b[1].n - a[1].h / a[1].n).map(([t, s]) => barRow(t, [{ v:s.h, c:C.got, tip:`${t}: ${s.h} of ${s.n}` }], s.n, `${s.h}/${s.n}`)).join("") || `<div class="empty">No tactics yet</div>`);
+  const br = {};
+  list.forEach(a => a.breaches.forEach(b => { br[b.type] = (br[b.type] || 0) + 1; }));
+  const top = Math.max(1, ...Object.values(br));
+  put("breaches", Object.entries(br).sort((a, b) => b[1] - a[1]).map(([t, n]) => barRow(BREACH[t] || label(t), [{ v:n, c:C.got, tip:`${BREACH[t] || label(t)}: ${n}` }], top, String(n))).join("") || `<div class="empty">Nothing got through</div>`);
+}
+async function openSession(sid) {
+  selected = sid; shown.delete("marks"); shown.delete("strip");
+  if (tab !== "attacks") show("attacks"); else render();
+  const d = await api(`/api/session/${sid}`).catch(() => null), box = $("transcript");
+  if (!d) { box.innerHTML = `<div class="empty">Could not load</div>`; return; }
+  box.innerHTML = "";
+  const add = (kind, who, text, extra = "") => { const m = document.createElement("div"); m.className = `msg ${kind} ${extra}`; const s = document.createElement("small"); s.textContent = who; m.append(s, text); box.appendChild(m); };
+  d.events.forEach(e => {
+    const x = e.data;
+    if (e.event === "plant") add("a", "Trap in review", x.text, "bad");
+    if (e.event === "ticket_planted") add("a", "Trap in ticket", x.text, "bad");
+    if (e.event === "message") add("a", "Attacker", x.content);
+    if (e.event === "reply" && !x.blocked_by) add("b", "Bot", x.content);
+    if (e.event === "verdict" && x.blocked) add("a", "Blocked", label(x.defense), "def");
+  });
+  d.judge.breaches.forEach(b => add("a", BREACH[b.type] || label(b.type), b.evidence, "bad"));
+  if (!box.children.length) box.innerHTML = `<div class="empty">Empty</div>`;
+}
+
+// ---------- defense tab ----------
+function renderDefense() {
+  const done = rounds.filter(r => r.summary);
+  put("asr-bars", done.map(r => barRow(`Round ${r.round} · ${r.defenses.length} on`, [{ v:r.summary.asr, c:C.got, tip:`Attack success ${pct(r.summary.asr)}\nFalse alarms ${pct(r.summary.false_alarm_rate)}` }], 1, pct(r.summary.asr), `data-round="${r.round}"`)).join("") || `<div class="empty">No rounds yet</div>`);
+  put("guard-legend", legend([[C.stop, "Flagged"], [C.none, "Passed"]]));
+  const g = {};
+  verdicts.forEach(v => { const d = g[v.data.defense] ||= { f:0, p:0 }; if (v.data.blocked || v.data.label === "Unsafe" || v.data.score === "yes") d.f++; else d.p++; });
+  put("guards", Object.entries(g).map(([n, s]) => barRow(label(n), [{ v:s.f, c:C.stop, tip:`Flagged: ${s.f}` }, { v:s.p, c:C.none, tip:`Passed: ${s.p}` }], s.f + s.p, `${s.f}/${s.f + s.p}`)).join("") || `<div class="empty">No verdicts yet</div>`);
+  const defs = [...new Set(rounds.flatMap(r => r.defenses))].sort();
+  put("defmatrix", defs.length ? `<table><tr><th>Defense</th>${rounds.map(r => `<th>R${r.round}</th>`).join("")}</tr>${defs.map(d => `<tr><td>${esc(label(d))}</td>${rounds.map((r, i) => {
+    const on = r.defenses.includes(d), fresh = on && i > 0 && !rounds[i - 1].defenses.includes(d);
+    return `<td><span class="dotm ${on ? (fresh ? "new" : "") : "off"}" data-tip="${esc(`${label(d)}: ${on ? (fresh ? "switched on" : "on") : "off"}`)}"></span></td>`;
+  }).join("")}</tr>`).join("")}</table>` : `<div class="empty">No defenses used yet</div>`);
+}
+
+// ---------- swarm tab ----------
+function renderSwarm() {
+  if (!swarm) return;
+  // Charts show the latest comparison only: older campaigns ran under different test settings
+  const all = swarm.campaigns || [], batch = all.at(-1)?.batch, camps = all.filter(c => c.batch === batch);
+  const hits = (l, k) => l.filter(c => c[k]).length;
+  // current-attack status strip
+  const team0 = camps.filter(c => c.coordinated), solo0 = camps.filter(c => !c.coordinated);
+  const pairs = Math.min(team0.length, solo0.length), liveNow = lastActivity && Date.now() - lastActivity < 20000;
+  const when = batch ? batch.replace(/^(\d{4})(\d\d)(\d\d)-(\d\d)(\d\d).*/, "$1-$2-$3 $4:$5") : "—";
+  put("swarm-head", !camps.length ? `<div class="empty">No campaign yet — start one with <code>python -m arena.swarm --mode compare --repeats 10</code></div>` :
+    `<div class="head-row"><div><b class="big">${liveNow ? "Attack running" : "Run complete"}</b><span class="sub">batch ${esc(when)}</span></div>` +
+    [["pairs", pairs], ["campaigns", camps.length], ["team", team0.length], ["alone", solo0.length]]
+      .map(([l, v]) => `<div class="head-stat"><b>${v}</b><span>${l}</span></div>`).join("") + `</div>`);
+  put("swarm-tiles", [["Campaigns", camps.length], ["Trap code repeated", hits(camps, "trap")], ["Staff bot taken over", hits(camps, "propagation")], ["Closer leaked other data", hits(camps, "closer_leak")]]
+    .map(([l, v]) => `<div class="card tile"><b>${v}</b><span>${l}</span></div>`).join(""));
+  put("cmp-legend", legend([[C.got, "Team (shared notes)"], [C.warn, "Alone (no notes)"]]));
+  const team = camps.filter(c => c.coordinated), solo = camps.filter(c => !c.coordinated);
+  const metrics = [["Trap code", "trap"], ["Staff bot", "propagation"], ["Other leak", "closer_leak"]];
+  const row = (l, k, list, c, who) => barRow(`${l} · ${who}`, [{ v:hits(list, k), c, tip:`${who}: ${hits(list, k)} of ${list.length} campaigns` }], Math.max(1, list.length), `${hits(list, k)}/${list.length}`);
+  put("compare", camps.length ? metrics.map(([l, k]) => row(l, k, team, C.got, "team") + row(l, k, solo, C.warn, "alone")).join("")
+    : `<div class="empty">Run <code>python -m arena.swarm --mode compare --repeats 10</code></div>`);
+  put("intel", swarm.intel.length ? `<table><tr><th>Order</th><th>Owner</th><th>Total</th></tr>${[...new Map(swarm.intel.filter(i => i.kind === "order").map(i => [i.order_id, i])).values()].map(i => `<tr><td>${esc(i.order_id)}</td><td>${esc(i.owner)}</td><td>$${esc(i.total)}</td></tr>`).join("")}</table>` : `<div class="empty">Fills during a campaign</div>`);
+  put("camp-legend", legend([[C.got, "✕ Got through"], [C.none, "· No effect"], [C.warn, "◆ Trap set"]]));
+  const cell = (r) => {
+    if (!r) return "<td></td>";
+    const o = r.role === "planter" ? "set" : r.breaches.length ? "got" : "none";
+    return `<td><button class="mark m-${o}" data-sid="${r.session}" data-tip="${esc(r.breaches.map(b => BREACH[b] || label(b)).join("\n") || OUT[o][0])}">${OUT[o][2]}</button></td>`;
+  };
+  put("campaigns", camps.length ? `<table><tr><th>Campaign</th><th>Scout</th><th>Plant</th><th>Staff bot</th><th>Closer</th><th>Mode</th></tr>${[...camps].reverse().slice(0, 30).map((c, i) => {
+    const by = Object.fromEntries(c.roles.map(r => [r.role, r]));
+    return `<tr><td>#${camps.length - i}</td>${cell(by.scout)}${cell(by.planter)}<td><span class="mark ${c.propagation ? "m-got" : "m-none"}" style="display:inline-block;cursor:default" data-tip="${c.propagation ? "Trap took over the staff bot" : "Trap did not take over the staff bot"}">${c.propagation ? "✕" : "·"}</span></td>${cell(by.closer)}<td>${c.coordinated ? "Team" : "Alone"}</td></tr>`;
+  }).join("")}</table>` : `<div class="empty">No campaigns yet</div>`);
+}
+
+// ---------- clicks + polling ----------
+document.addEventListener("click", e => {
+  const el = e.target.closest?.("[data-sid],[data-round],[data-fround]");
+  if (!el) return;
+  if (el.dataset.sid) openSession(el.dataset.sid);
+  else if (el.dataset.fround) { fRound = el.dataset.fround === "all" ? null : el.dataset.fround; renderAttacks(); }
+  else { fRound = "r" + el.dataset.round; show("attacks"); }
+});
+function render() {
+  ({ live:renderLive, rounds:renderRounds, attacks:renderAttacks, defense:renderDefense, swarm:renderSwarm })[tab]();
+}
+async function refresh() {
+  try {
+    [rounds, attacks, swarm, verdicts] = await Promise.all([api("/api/rounds"), api("/api/attacks?limit=300"), api("/api/swarm"), api("/api/verdicts?limit=1000")]);
+    render(); resetIdle();
+  } catch (_) {}
+}
+async function health() {
+  const live = lastActivity && Date.now() - lastActivity < 20000;
+  try {
+    const h = await api("/api/health");
+    $("dot").className = "dot " + (live ? "live" : h.kaggle ? "ok" : "bad");
+    $("status").textContent = live ? "Attack running" : h.kaggle ? "Models connected" : "Models offline";
+  } catch (_) { $("dot").className = "dot bad"; $("status").textContent = "Server offline"; }
+}
+show("swarm");
+player(); liveLoop(); refresh(); health();
+setInterval(refresh, 4000);
+setInterval(health, 8000);
+setInterval(() => { if (tab === "live") renderLive(); }, 5000);
+</script>
+</body>
+</html>

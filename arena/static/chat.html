@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShopBot</title>
+<style>
+  :root { --bg:#0f1013; --panel:#17191e; --line:#2a2d35; --fg:#eceef2; --muted:#8a909c;
+          --target:#ecebe6; --blue:#4f86f7; --red:#ff5d52; --amber:#f2b33d; --ok:#45c98b; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.5 system-ui, "Segoe UI", sans-serif; }
+  .wrap { display:grid; grid-template-columns: minmax(0,1fr) 340px; gap:16px; padding:16px; height:100vh; }
+  .panel { background:var(--panel); border-radius:14px; padding:16px; min-height:0; display:flex; flex-direction:column; }
+  h1 { font-size:18px; margin:0 0 4px; } h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 8px; }
+  .muted { color:var(--muted); font-size:12.5px; }
+  #log { flex:1; overflow:auto; display:flex; flex-direction:column; gap:8px; padding:8px 0; }
+  .msg { padding:10px 12px; border-radius:10px; max-width:80%; white-space:pre-wrap; }
+  .customer { align-self:flex-end; background:#24324f; }
+  .target { align-self:flex-start; background:var(--target); color:#16171b; }
+  .tool { align-self:flex-start; font:12px ui-monospace, Consolas, monospace; color:var(--muted); border-left:3px solid var(--line); padding:4px 10px; max-width:100%; }
+  .defense { align-self:flex-start; font:12px ui-monospace, Consolas, monospace; border-left:3px solid var(--blue); padding:4px 10px; color:#b3cbfc; }
+  .blocked { border-left-color:var(--red); color:#ffb2ab; }
+  form { display:flex; gap:8px; } input, select, button { font:inherit; color:var(--fg); background:#202329; border:1px solid var(--line); border-radius:8px; padding:8px 10px; }
+  input { flex:1; } button { cursor:pointer; } button:hover { border-color:var(--muted); }
+  .row { display:flex; gap:8px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+  .def { display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-top:1px solid var(--line); }
+  .def b { font:600 12.5px ui-monospace, Consolas, monospace; } .def p { margin:2px 0 0; color:var(--muted); font-size:12.5px; }
+  .dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px; }
+  @media (max-width: 800px) { .wrap { grid-template-columns: minmax(0,1fr); height:auto; } #log { min-height:50vh; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="panel">
+    <h1>ShopBot</h1>
+    <div class="row muted"><span id="health">checking Kaggle…</span><span>·</span><span id="sid">no session yet</span></div>
+    <div class="row">
+      <label class="muted" for="customer">Chatting as</label>
+      <select id="customer"><option value="">anonymous customer</option></select>
+      <button id="new" type="button">New chat</button>
+    </div>
+    <div id="log"></div>
+    <form id="f"><input id="m" autocomplete="off" placeholder="Message ShopBot"><button>Send</button></form>
+  </section>
+  <aside class="panel">
+    <h2>Defences</h2>
+    <p class="muted" style="margin:0 0 8px">Changes apply to chats started after the switch.</p>
+    <div id="defs" style="overflow:auto"></div>
+  </aside>
+</div>
+<script>
+let session = null, lastEvent = 0;
+const $ = (id) => document.getElementById(id);
+const api = (path, opts = {}) => fetch(path, { headers: { "Content-Type": "application/json" }, ...opts }).then(r => r.json());
+
+function add(cls, text) {
+  const d = document.createElement("div"); d.className = "msg " + cls; d.textContent = text;
+  $("log").appendChild(d); $("log").scrollTop = $("log").scrollHeight;
+}
+
+async function showEvents() {
+  if (!session) return;
+  for (const e of await api(`/api/events?session=${session}&since=${lastEvent}`)) {
+    lastEvent = e.id;
+    if (e.event === "tool_call") add("tool", `→ ${e.data.name}(${JSON.stringify(e.data.args)})`);
+    else if (e.event === "tool_result") add("tool", `← ${e.data.result.slice(0, 300)}`);
+    else if (e.event === "verdict") add("defense" + (e.data.blocked ? " blocked" : ""), `${e.data.defense}: ${e.data.label || e.data.score} ${e.data.blocked ? "→ BLOCKED" : ""}`);
+    else if (e.event === "reply") add("target", e.data.content);
+  }
+}
+
+async function newChat() {
+  session = (await api("/api/sessions", { method: "POST", body: JSON.stringify({ customer: $("customer").value || null }) })).session;
+  lastEvent = 0; $("log").innerHTML = ""; $("sid").textContent = "session " + session;
+}
+
+$("f").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const text = $("m").value.trim(); if (!text) return;
+  if (!session) await newChat();
+  $("m").value = ""; add("customer", text);
+  // Skip our own message when replaying events; it is already shown
+  const sent = await api(`/api/events?session=${session}&since=${lastEvent}`); if (sent.length) lastEvent = sent.at(-1).id;
+  $("m").disabled = true;
+  try { await api("/api/chat", { method: "POST", body: JSON.stringify({ session, message: text }) }); }
+  catch (e) { add("tool", "Request failed: " + e); }
+  $("m").disabled = false; $("m").focus();
+  await showEvents();
+});
+$("new").addEventListener("click", newChat);
+
+async function loadDefs() {
+  const defs = await api("/api/defenses"); $("defs").innerHTML = "";
+  for (const [name, d] of Object.entries(defs)) {
+    const row = document.createElement("label"); row.className = "def";
+    row.innerHTML = `<input type="checkbox" ${d.on ? "checked" : ""}><span><b></b><p></p></span>`;
+    row.querySelector("b").textContent = name; row.querySelector("p").textContent = d.description;
+    row.querySelector("input").addEventListener("change", (ev) =>
+      api("/api/defenses", { method: "PUT", body: JSON.stringify({ [name]: ev.target.checked }) }));
+    $("defs").appendChild(row);
+  }
+}
+
+(async () => {
+  for (const c of await api("/api/customers")) { const o = document.createElement("option"); o.textContent = c; $("customer").appendChild(o); }
+  loadDefs();
+  const h = await api("/api/health");
+  $("health").innerHTML = `<span class="dot" style="background:${h.kaggle ? "var(--ok)" : "var(--red)"}"></span>Kaggle brain ${h.kaggle ? "online" : "offline"}`;
+})();
+</script>
+</body>
+</html>

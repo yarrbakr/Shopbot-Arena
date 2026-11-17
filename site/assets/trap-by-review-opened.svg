@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="921.6pt" height="460.8pt" viewBox="0 0 921.6 460.8" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-11-01T22:57:32.674685</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.3, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 460.8 
+L 921.6 460.8 
+L 921.6 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 285.696 405.504 
+L 578.126769 405.504 
+L 578.126769 156.672 
+L 285.696 156.672 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 285.696 217.466182 
+L 285.696 217.466182 
+L 285.696 167.982545 
+L 285.696 167.982545 
+z
+" clip-path="url(#pd50b6ae6d3)" style="fill: #9aa0ad"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 285.696 305.829818 
+L 490.397538 305.829818 
+L 490.397538 256.346182 
+L 285.696 256.346182 
+z
+" clip-path="url(#pd50b6ae6d3)" style="fill: #9aa0ad"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 285.696 394.193455 
+L 490.397538 394.193455 
+L 490.397538 344.709818 
+L 285.696 344.709818 
+z
+" clip-path="url(#pd50b6ae6d3)" style="fill: #e34948"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="ytick_1">
+     <g id="line2d_1"/>
+     <g id="text_1">
+      <text style="font-size: 15px; font-family: 'Segoe UI'; fill: #16171b" transform="translate(111.744438 190.999364)">Closer opened the review,</text>
+      <text style="font-size: 15px; font-family: 'Segoe UI'; fill: #16171b" transform="translate(142.93975 207.774989)">without shared notes</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_2"/>
+     <g id="text_2">
+      <text style="font-size: 15px; font-family: 'Segoe UI'; fill: #16171b" transform="translate(111.744438 279.363)">Closer opened the review,</text>
+      <text style="font-size: 15px; font-family: 'Segoe UI'; fill: #16171b" transform="translate(165.301469 296.138625)">with shared notes</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_3"/>
+     <g id="text_3">
+      <text style="font-size: 15px; font-family: 'Segoe UI'; text-anchor: end; fill: #16171b" x="282.196" y="375.00398" transform="rotate(-0 282.196 375.00398)">Bot repeated the code</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_6">
+    <path d="M 285.696 405.504 
+L 285.696 156.672 
+" style="fill: none; stroke: #e1e0d9; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_4">
+    <text style="font-weight: 700; font-size: 15px; font-family: 'Segoe UI'; text-anchor: start; fill: #16171b" x="290.082462" y="196.551707" transform="rotate(-0 290.082462 196.551707)">0 of 10</text>
+   </g>
+   <g id="text_5">
+    <text style="font-weight: 700; font-size: 15px; font-family: 'Segoe UI'; text-anchor: start; fill: #16171b" x="494.784" y="284.915344" transform="rotate(-0 494.784 284.915344)">7 of 10</text>
+   </g>
+   <g id="text_6">
+    <text style="font-weight: 700; font-size: 15px; font-family: 'Segoe UI'; text-anchor: start; fill: #16171b" x="494.784" y="373.27898" transform="rotate(-0 494.784 373.27898)">7 of 10</text>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI'; text-anchor: start; fill: #16171b" x="285.696" y="144.672" transform="rotate(-0 285.696 144.672)">No defenses</text>
+   </g>
+  </g>
+  <g id="axes_2">
+   <g id="patch_7">
+    <path d="M 601.521231 405.504 
+L 893.952 405.504 
+L 893.952 156.672 
+L 601.521231 156.672 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 601.521231 217.466182 
+L 601.521231 217.466182 
+L 601.521231 167.982545 
+L 601.521231 167.982545 
+z
+" clip-path="url(#p024f18459e)" style="fill: #9aa0ad"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 601.521231 305.829818 
+L 776.979692 305.829818 
+L 776.979692 256.346182 
+L 601.521231 256.346182 
+z
+" clip-path="url(#p024f18459e)" style="fill: #9aa0ad"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 601.521231 394.193455 
+L 776.979692 394.193455 
+L 776.979692 344.709818 
+L 601.521231 344.709818 
+z
+" clip-path="url(#p024f18459e)" style="fill: #e34948"/>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_4">
+     <g id="line2d_4"/>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_5"/>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_6"/>
+    </g>
+   </g>
+   <g id="patch_11">
+    <path d="M 601.521231 405.504 
+L 601.521231 156.672 
+" style="fill: none; stroke: #e1e0d9; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_8">
+    <text style="font-weight: 700; font-size: 15px; font-family: 'Segoe UI'; text-anchor: start; fill: #16171b" x="605.907692" y="196.551707" transform="rotate(-0 605.907692 196.551707)">0 of 10</text>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 15px; font-family: 'Segoe UI'; text-anchor: start; fill: #16171b" x="781.366154" y="284.915344" transform="rotate(-0 781.366154 284.915344)">6 of 10</text>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 15px; font-family: 'Segoe UI'; text-anchor: start; fill: #16171b" x="781.366154" y="373.27898" transform="rotate(-0 781.366154 373.27898)">6 of 10</text>
+   </g>
+   <g id="text_11">
+    <text style="font-weight: 700; font-size: 16px; font-family: 'Segoe UI'; text-anchor: start; fill: #16171b" x="601.521231" y="144.672" transform="rotate(-0 601.521231 144.672)">Five defenses on</text>
+   </g>
+  </g>
+  <g id="text_12">
+   <text style="font-weight: 700; font-size: 23px; font-family: 'Segoe UI'; text-anchor: start; fill: #16171b" x="36.864" y="40.067188" transform="rotate(-0 36.864 40.067188)">Once the review was opened, the bot repeated the code</text>
+  </g>
+  <g id="text_13">
+   <text style="font-size: 15px; font-family: 'Segoe UI'; text-anchor: start; fill: #5f636e" x="36.864" y="73.472063" transform="rotate(-0 36.864 73.472063)">10 campaigns per group. It happened every time it was opened: 7 of 7, then 6 of 6 with defenses on.</text>
+  </g>
+  <g id="text_14">
+   <text style="font-size: 13px; font-family: 'Segoe UI'; text-anchor: start; fill: #5f636e" x="36.864" y="444.672" transform="rotate(-0 36.864 444.672)">One model, one fake shop, small sample. The pattern was spotted after the runs.</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pd50b6ae6d3">
+   <rect x="285.696" y="156.672" width="292.430769" height="248.832"/>
+  </clipPath>
+  <clipPath id="p024f18459e">
+   <rect x="601.521231" y="156.672" width="292.430769" height="248.832"/>
+  </clipPath>
+ </defs>
+</svg>

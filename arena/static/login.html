@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TufShop — Sign in</title>
+<style>
+  :root{color-scheme:light dark}
+  body{font:15px/1.5 system-ui,sans-serif;max-width:420px;margin:48px auto;padding:0 16px}
+  h1{font-size:20px}
+  .card{border:1px solid #8884;border-radius:12px;padding:20px;margin-top:16px}
+  label{display:block;font-size:13px;color:#888;margin-bottom:6px}
+  input,button,select{font:inherit;padding:9px 11px;border-radius:8px;border:1px solid #8886}
+  input,select{width:100%}
+  button{margin-top:12px;cursor:pointer;background:#2563eb;color:#fff;border:none}
+  .msg{margin-top:12px;font-size:13px}
+  a{color:#2563eb}
+</style>
+</head>
+<body>
+  <h1>TufShop — sign in</h1>
+  <p style="color:#888;font-size:13px">Lab accounts only. Pick an account to act as; no password (fake data).</p>
+  <div class="card">
+    <label for="name">Account</label>
+    <select id="name">
+      <option>Sara Malik</option>
+      <option>Bilal Khan</option>
+      <option>Ayesha Raza</option>
+      <option>Usman Tariq</option>
+      <option>Staff</option>
+    </select>
+    <button id="go" type="button">Sign in</button>
+    <div class="msg" id="msg"></div>
+  </div>
+<script>
+  const msg = document.getElementById("msg");
+  document.getElementById("go").addEventListener("click", async () => {
+    const name = document.getElementById("name").value;
+    const r = await fetch("/api/login", {method:"POST", headers:{"content-type":"application/json"},
+      body: JSON.stringify({name})});
+    if (!r.ok) { msg.textContent = "Sign in failed."; return; }
+    const d = await r.json();
+    try { localStorage.setItem("tufshop", JSON.stringify(d)); } catch(e){}
+    location.href = d.role === "staff" ? "/staff" : "/account";
+  });
+</script>
+</body>
+</html>

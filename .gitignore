@@ -1,0 +1,17 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# local run data (event log, shop state, cached PIForge template)
+arena/data/
+*.db
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# vercel
+.vercel
