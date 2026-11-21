@@ -7,6 +7,7 @@ so no AI grades another AI.
 
 - **Visual summary and replay of all 40 campaigns:** https://shopbot-arena.vercel.app
 - **Write-up:** [What My Guards Couldn't See](https://yarrbakr.github.io/prompt-injection/)
+- **Research notes:** [Breakwater on Substack](https://breakwater709935.substack.com/p/what-my-guards-couldnt-see), where new experiments are published
 
 ## What we found
 
